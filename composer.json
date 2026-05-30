@@ -1,0 +1,24 @@
+{
+    "name": "coffee-r/digtrace-php",
+    "description": "PHP library for observing HTTP request behavior and recording as JSONL for specification investigation",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "opis/json-schema": "^2.3"
+    },
+    "bin": ["bin/digtrace"],
+    "autoload": {
+        "psr-4": {
+            "CoffeeR\\Digtrace\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CoffeeR\\Digtrace\\Tests\\": "tests/"
+        }
+    }
+}

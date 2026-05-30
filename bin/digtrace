@@ -1,0 +1,270 @@
+#!/usr/bin/env php
+<?php
+
+// Composer autoload 探索（vendor/bin 経由でも動くように複数パス試行）
+$autoloadPaths = [];
+if (isset($_composer_autoload_path)) {
+    $autoloadPaths[] = $_composer_autoload_path;
+}
+$autoloadPaths[] = __DIR__ . '/../vendor/autoload.php';
+$autoloadPaths[] = __DIR__ . '/../../../autoload.php';
+
+$autoloaded = false;
+foreach ($autoloadPaths as $autoloadPath) {
+    if (is_file($autoloadPath)) {
+        require_once $autoloadPath;
+        $autoloaded = true;
+        break;
+    }
+}
+
+if (!$autoloaded) {
+    fwrite(STDERR, "Error: vendor/autoload.php not found. Run: composer install\n");
+    exit(1);
+}
+
+use CoffeeR\Digtrace\Encryption\Decryptor;
+use CoffeeR\Digtrace\Report\Aggregator;
+use CoffeeR\Digtrace\Report\JsonlReader;
+use CoffeeR\Digtrace\Report\MarkdownRenderer;
+
+// ---------- argv parsing ----------
+
+$argv = $_SERVER['argv'];
+array_shift($argv); // スクリプト名を除去
+
+$command = null;
+$options = [];
+$paths   = [];
+
+$i = 0;
+while ($i < count($argv)) {
+    $arg = $argv[$i];
+    if ($arg === '--help' || $arg === '-h') {
+        $options['help'] = true;
+    } elseif ($arg === '--format' && isset($argv[$i + 1])) {
+        $options['format'] = $argv[$i + 1];
+        $i++;
+    } elseif ($arg === '--value-mode' && isset($argv[$i + 1])) {
+        $options['value-mode'] = $argv[$i + 1];
+        $i++;
+    } elseif ($arg === '--private-key' && isset($argv[$i + 1])) {
+        $options['private-key'] = $argv[$i + 1];
+        $i++;
+    } elseif ($arg === '--bits' && isset($argv[$i + 1])) {
+        $options['bits'] = (int) $argv[$i + 1];
+        $i++;
+    } elseif (strpos($arg, '--') === 0) {
+        fwrite(STDERR, "Unknown option: $arg\n");
+        exit(1);
+    } elseif ($command === null) {
+        $command = $arg;
+    } else {
+        $paths[] = $arg;
+    }
+    $i++;
+}
+
+// ---------- help / dispatch ----------
+
+if ($command === null || isset($options['help'])) {
+    printHelp();
+    exit(0);
+}
+
+if ($command === 'report') {
+    runReport($paths, $options);
+} elseif ($command === 'decrypt') {
+    runDecrypt($paths, $options);
+} elseif ($command === 'keygen') {
+    runKeygen($options);
+} else {
+    fwrite(STDERR, "Unknown command: $command\n\n");
+    printHelp();
+    exit(1);
+}
+
+// ---------- command handlers ----------
+
+function runReport(array $paths, array $options)
+{
+    if (count($paths) === 0) {
+        fwrite(STDERR, "Error: No JSONL files given.\n");
+        exit(1);
+    }
+
+    $format    = isset($options['format']) ? $options['format'] : 'md';
+    $valueMode = isset($options['value-mode']) ? $options['value-mode'] : 'normalized';
+
+    if (!in_array($format, ['md', 'markdown', 'json'], true)) {
+        fwrite(STDERR, "Error: Unknown format '$format'. Use: md, json\n");
+        exit(1);
+    }
+
+    $reader = new JsonlReader();
+    try {
+        $traces = $reader->read($paths);
+    } catch (\RuntimeException $e) {
+        fwrite(STDERR, "Error: " . $e->getMessage() . "\n");
+        exit(1);
+    }
+
+    foreach ($reader->warnings() as $warning) {
+        fwrite(STDERR, "Warning: $warning\n");
+    }
+
+    $report = (new Aggregator($valueMode))->aggregate($traces);
+
+    if ($format === 'json') {
+        echo json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    } else {
+        echo (new MarkdownRenderer())->render($report);
+    }
+
+    exit(0);
+}
+
+function runDecrypt(array $paths, array $options)
+{
+    if (count($paths) === 0) {
+        fwrite(STDERR, "Error: No JSONL files given.\n");
+        exit(1);
+    }
+
+    if (!isset($options['private-key'])) {
+        fwrite(STDERR, "Error: --private-key <key.pem> is required for decrypt.\n");
+        exit(1);
+    }
+
+    $keyPath = $options['private-key'];
+    if (!is_file($keyPath)) {
+        fwrite(STDERR, "Error: Private key file not found: $keyPath\n");
+        exit(1);
+    }
+
+    $format = isset($options['format']) ? $options['format'] : 'jsonl';
+    if (!in_array($format, ['jsonl', 'json'], true)) {
+        fwrite(STDERR, "Error: Unknown format '$format'. Use: jsonl, json\n");
+        exit(1);
+    }
+
+    $privateKeyPem = file_get_contents($keyPath);
+    try {
+        $decryptor = new Decryptor($privateKeyPem);
+    } catch (\InvalidArgumentException $e) {
+        fwrite(STDERR, "Error: " . $e->getMessage() . "\n");
+        exit(1);
+    }
+
+    $reader = new JsonlReader();
+    try {
+        $traces = $reader->read($paths);
+    } catch (\RuntimeException $e) {
+        fwrite(STDERR, "Error: " . $e->getMessage() . "\n");
+        exit(1);
+    }
+
+    foreach ($reader->warnings() as $warning) {
+        fwrite(STDERR, "Warning: $warning\n");
+    }
+
+    $decrypted = [];
+    foreach ($traces as $trace) {
+        try {
+            $decrypted[] = $decryptor->decryptTrace($trace);
+        } catch (\Exception $e) {
+            fwrite(STDERR, "Warning: Failed to decrypt trace " . (isset($trace['trace_id']) ? $trace['trace_id'] : '?') . ": " . $e->getMessage() . "\n");
+            $decrypted[] = $trace;
+        }
+    }
+
+    if ($format === 'json') {
+        echo json_encode($decrypted, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    } else {
+        foreach ($decrypted as $trace) {
+            echo json_encode($trace, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        }
+    }
+
+    exit(0);
+}
+
+function runKeygen(array $options)
+{
+    $bits = isset($options['bits']) ? $options['bits'] : 2048;
+    if (!in_array($bits, [2048, 4096], true)) {
+        fwrite(STDERR, "Error: --bits must be 2048 or 4096\n");
+        exit(1);
+    }
+
+    $key = openssl_pkey_new([
+        'private_key_bits' => $bits,
+        'private_key_type' => OPENSSL_KEYTYPE_RSA,
+    ]);
+
+    if ($key === false) {
+        fwrite(STDERR, "Error: RSA key generation failed: " . openssl_error_string() . "\n");
+        exit(1);
+    }
+
+    $privatePem = '';
+    openssl_pkey_export($key, $privatePem);
+    $publicPem = openssl_pkey_get_details($key)['key'];
+
+    $privateFile = 'key.pem';
+    $publicFile  = 'key.pub.pem';
+
+    if (file_put_contents($privateFile, $privatePem) === false) {
+        fwrite(STDERR, "Error: Cannot write $privateFile\n");
+        exit(1);
+    }
+    if (file_put_contents($publicFile, $publicPem) === false) {
+        fwrite(STDERR, "Error: Cannot write $publicFile\n");
+        exit(1);
+    }
+
+    chmod($privateFile, 0600);
+
+    echo "Generated RSA-$bits key pair:\n";
+    echo "  Private key: $privateFile  (keep secret, do not put on servers)\n";
+    echo "  Public key:  $publicFile   (put in Config::\$encryptionPublicKey)\n";
+    exit(0);
+}
+
+function printHelp()
+{
+    echo <<<'HELP'
+digtrace — digtrace-v1 report and decrypt tool
+
+Usage:
+  php bin/digtrace report <jsonl...> [--format md|json] [--value-mode normalized|tokenized]
+  php bin/digtrace decrypt <jsonl...> --private-key key.pem [--format jsonl|json]
+  php bin/digtrace keygen [--bits 2048|4096]
+  php bin/digtrace --help
+
+Commands:
+  report   Generate a Markdown or JSON summary report from JSONL digtrace files
+  decrypt  Decrypt *_encrypted fields using a private key and output restored JSONL
+  keygen   Generate an RSA key pair (key.pem + key.pub.pem)
+
+Options for report:
+  --format md|json          Output format (default: md)
+  --value-mode normalized|tokenized
+                            SQL value display mode (default: normalized)
+
+Options for decrypt:
+  --private-key <file>      Path to RSA private key PEM file (required)
+  --format jsonl|json       Output format (default: jsonl)
+
+Options for keygen:
+  --bits 2048|4096          RSA key size (default: 2048)
+
+Examples:
+  php bin/digtrace report trace.jsonl
+  php bin/digtrace report --format json jan.jsonl feb.jsonl > report.json
+  php bin/digtrace decrypt --private-key key.pem trace.jsonl > restored.jsonl
+  php bin/digtrace keygen
+  php bin/digtrace keygen --bits 4096
+
+HELP;
+}

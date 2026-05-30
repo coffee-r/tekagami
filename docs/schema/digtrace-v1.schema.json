@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/coffee-r/digtrace-php/docs/schema/digtrace-v1.schema.json",
+  "title": "digtrace v1",
+  "description": "One JSONL line per HTTP request. Records observed facts only — no business-logic interpretation.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "trace_id",
+    "app_name",
+    "env",
+    "started_at",
+    "flow",
+    "redaction",
+    "http",
+    "timeline",
+    "effects",
+    "errors"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "trace_id":    { "type": "string" },
+    "app_name":    { "type": "string", "description": "Application identifier. e.g. 'legacy-shop', 'coffee-api'" },
+    "env":         { "type": "string", "description": "e.g. 'production', 'staging', 'local'" },
+    "started_at":  { "type": "string", "format": "date-time" },
+    "flow":        { "$ref": "#/$defs/flow" },
+    "redaction":   { "$ref": "#/$defs/redaction_meta" },
+    "http":        { "$ref": "#/$defs/http_envelope" },
+    "timeline": {
+      "type": "array",
+      "description": "All data operations in causal order. Single seq counter across all event types. External HTTP calls are recorded as event_custom with label 'http_call'.",
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/event_sql" },
+          { "$ref": "#/$defs/event_custom" }
+        ]
+      }
+    },
+    "effects": {
+      "type": "array",
+      "description": "Materialized summary of write operations derived from timeline[type=sql]. Disabled by Config captureEffects=false.",
+      "items": { "$ref": "#/$defs/effect" }
+    },
+    "errors": {
+      "type": "array",
+      "description": "Capture failures within digtrace, or application-level errors observed during the request.",
+      "items": { "$ref": "#/$defs/error_item" }
+    }
+  },
+  "additionalProperties": true,
+
+  "$defs": {
+
+    "flow": {
+      "description": "Links multiple HTTP requests that belong to one user scenario. e.g. browse → add-to-cart → order are 3 traces with the same flow_id.",
+      "type": "object",
+      "required": ["flow_id", "seq"],
+      "properties": {
+        "flow_id": {
+          "type": ["string", "null"],
+          "description": "Scenario identifier. null when flow tracking is not configured or detected."
+        },
+        "seq": {
+          "type": ["integer", "null"],
+          "description": "Optional step index within the flow (1-based). null when not set."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "redaction_meta": {
+      "description": "Records which redaction mode was active when this observation was written.",
+      "type": "object",
+      "required": ["tokenized", "token_format"],
+      "properties": {
+        "tokenized": {
+          "type": "boolean",
+          "description": "true when redaction.secret is configured and *_tokens fields are populated."
+        },
+        "token_format": {
+          "type": ["string", "null"],
+          "description": "e.g. 'hmac-sha256:12'. null when tokenized=false."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "http_envelope": {
+      "description": "HTTP request and response data for this observation.",
+      "type": "object",
+      "required": ["method", "path"],
+      "properties": {
+        "method": { "type": "string" },
+        "path":   { "type": "string", "description": "Actual request path, e.g. /products/123" },
+
+        "path_pattern":   { "type": ["string", "null"], "description": "Matched endpoint pattern, e.g. /products/{id}. null when not determinable." },
+        "path_tokens":    { "type": ["string", "null"], "description": "Path with dynamic segments replaced by HMAC tokens, e.g. /products/{p-a1b2}. null when path_pattern is null or no secret." },
+
+        "status":         { "type": ["integer", "null"] },
+        "response_kind":  { "enum": ["json", "html", "other", null], "description": "json = JSON body captured in response_shape. html = views[] captured, body not recorded. other/null = neither." },
+        "content_type":   { "type": ["string", "null"] },
+
+        "request_headers_shape":  { "description": "Key names and scalar types of request headers. Values never appear here." },
+        "request_headers_tokens": { "description": "HMAC tokens for request header values. null when no secret." },
+
+        "query_shape":    { "description": "Structure/types of URL query string parameters." },
+        "query_tokens":   { "description": "HMAC tokens for query parameter values. null when no secret." },
+        "query_values":   { "description": "Actual values of keys in Config keepKeys (whitelist). Survives AI export." },
+
+        "request_shape":  { "description": "Structure/types of request body (JSON or form-encoded)." },
+        "request_tokens": { "description": "HMAC tokens for request body values. null when no secret." },
+        "request_values": { "description": "Actual values of keys in Config keepKeys (whitelist). Survives AI export." },
+
+        "response_shape": { "description": "Structure/types of JSON response body. null for HTML or non-JSON responses." },
+
+        "views": {
+          "type": "array",
+          "description": "HTML view templates rendered, in render order. Populated when response_kind='html'.",
+          "items": { "$ref": "#/$defs/view_item" }
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "view_item": {
+      "description": "One rendered HTML view template.",
+      "type": "object",
+      "required": ["seq", "template"],
+      "properties": {
+        "seq":        { "type": "integer", "description": "Render order within this request (1-based)." },
+        "template":   { "type": "string",  "description": "Template file path relative to views root." },
+        "vars_shape": { "description": "Shape of the variables passed to this view." }
+      },
+      "additionalProperties": false
+    },
+
+    "event_sql": {
+      "description": "A SQL statement executed during this request.",
+      "type": "object",
+      "required": [
+        "seq", "type", "operation", "tables",
+        "statement_normalized", "statement_hash",
+        "bind_shape", "observed_values", "analysis"
+      ],
+      "properties": {
+        "seq":       { "type": "integer", "description": "Global causal position across all timeline events (1-based)." },
+        "type":      { "const": "sql" },
+        "operation": { "type": "string", "description": "SELECT / INSERT / UPDATE / DELETE / MERGE / REPLACE / UPSERT / UNKNOWN" },
+        "tables":    { "type": "array", "items": { "type": "string" }, "description": "Uppercase table names, best-effort." },
+
+        "statement_normalized": {
+          "type": "string",
+          "description": "SQL with all literals replaced by {parameter}. Stable grouping key across runs."
+        },
+        "statement_tokens": {
+          "type": ["string", "null"],
+          "description": "SQL with literals replaced by HMAC tokens — same value → same token. null when no secret."
+        },
+        "statement_text": {
+          "type": ["string", "null"],
+          "description": "Full raw SQL string. null by default; only present when Config captureText=true."
+        },
+        "statement_hash": {
+          "type": "string",
+          "description": "sha256:<hex> of statement_normalized. Stable across runs; links to effects[].statement_hash."
+        },
+
+        "bind_shape":       { "description": "Structure/types of bind parameters." },
+        "bind_tokens":      { "description": "HMAC tokens for bind values. null when no secret." },
+
+        "observed_values": {
+          "type": "object",
+          "description": "Values extracted from the compiled SQL for columns matching Config sqlValueAllowlist. Key format: 'table.column' or 'column'.",
+          "additionalProperties": { "$ref": "#/$defs/observed_column" }
+        },
+
+        "analysis": { "$ref": "#/$defs/sql_analysis" }
+      },
+      "additionalProperties": true
+    },
+
+    "observed_column": {
+      "description": "Distinct values observed for one table.column key within a SQL statement.",
+      "type": "object",
+      "required": ["redacted", "values"],
+      "properties": {
+        "redacted": {
+          "type": "boolean",
+          "description": "false = actual value kept (column is in sqlValueAllowlist). true = HMAC token (reserved; not yet emitted)."
+        },
+        "values": {
+          "type": "array",
+          "description": "Distinct actual or tokenized values seen for this column in this statement."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "sql_analysis": {
+      "description": "Confidence metadata for the SQL regex analysis. Low confidence is expected for complex queries; use warnings to understand gaps.",
+      "type": "object",
+      "required": ["analyzer", "operation_confidence", "tables_confidence", "warnings"],
+      "properties": {
+        "analyzer":             { "type": "string", "description": "e.g. 'regex'" },
+        "dialect":              { "type": "string", "description": "SQL dialect used for analysis, e.g. 'oracle', 'sqlite'. Custom analyzers may report other identifiers." },
+        "operation_confidence": { "enum": ["high", "best_effort", "unknown"] },
+        "tables_confidence":    { "enum": ["high", "best_effort", "unknown"] },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Known limitations for this statement, e.g. 'query_history_capture_has_no_bind_values', 'tables_not_detected'."
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "event_custom": {
+      "description": "A manually instrumented operation inserted by the application or adapter.",
+      "type": "object",
+      "required": ["seq", "type", "label"],
+      "properties": {
+        "seq":        { "type": "integer", "description": "Global causal position across all timeline events (1-based)." },
+        "type":       { "const": "custom" },
+        "label":      { "type": "string", "description": "Short operation name, e.g. 'cache_read', 'file_put', 'queue_push'." },
+        "data_shape": { "description": "Shape of any attached data." }
+      },
+      "additionalProperties": true
+    },
+
+    "effect": {
+      "description": "One entry in the write-operation summary. Derived from timeline[type=sql] write ops.",
+      "type": "object",
+      "required": ["op", "table", "statement_hash", "count"],
+      "properties": {
+        "op":             { "type": "string", "description": "INSERT / UPDATE / DELETE / MERGE / REPLACE / UPSERT" },
+        "table":          { "type": ["string", "null"], "description": "Uppercase table name. null when table detection failed." },
+        "statement_hash": { "type": "string", "description": "Matches timeline[type=sql].statement_hash." },
+        "count":          { "type": "integer", "minimum": 1, "description": "How many times this (op, table, hash) combination was observed in this request." }
+      },
+      "additionalProperties": false
+    },
+
+    "error_item": {
+      "description": "A capture failure within digtrace, or an application-level error observed during the request.",
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type":    { "type": "string", "description": "Error category, e.g. 'capture_failure', 'php_exception'." },
+        "message": { "type": ["string", "null"] },
+        "at":      { "type": ["string", "null"], "description": "Rough source location, e.g. class name or PHP file:line." }
+      },
+      "additionalProperties": true
+    }
+
+  }
+}

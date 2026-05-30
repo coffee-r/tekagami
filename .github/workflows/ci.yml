@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # ランタイム下限（PHP 7.0）の検証。PHPUnit ^9.5 は 7.3+ を要求するため
+  # テストは実行できない。代わりに src/・bin/ を php -l で構文チェックして
+  # 7.0 で読み込めることを保証する。
+  lint-floor:
+    name: Syntax lint (PHP 7.0 floor)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.0'
+          extensions: openssl
+          coverage: none
+
+      - name: Lint sources
+        run: |
+          find src -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l bin/digtrace
+
+  tests:
+    name: PHPUnit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # ランタイム要件は PHP 7.0+ だが、テストは dev 依存の PHPUnit ^9.5
+        # （PHP 7.3+ 必須）で実行する。
+        php: ['7.4', '8.1', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: openssl
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run test suite
+        run: ./vendor/bin/phpunit

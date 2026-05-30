@@ -1,0 +1,122 @@
+<?php
+
+namespace CoffeeR\Digtrace;
+
+use CoffeeR\Digtrace\Flow;
+use CoffeeR\Digtrace\Http\HttpInput;
+use CoffeeR\Digtrace\Http\HttpResponse;
+
+/**
+ * トレースのライフサイクルを管理する主要公開インターフェース。
+ *
+ * 1リクエスト = 1トレース。コールシーケンス:
+ *   start() → [addSql() / addCustom() / addError()] → finish()
+ *
+ * 外部 HTTP 呼び出しの記録は addCustom('http_call', ...) で代替する。
+ *
+ * app_name / env / SinkInterface は実装クラスのコンストラクタ（Config）に注入する。
+ * アプリ本体への影響ゼロが原則: 書き込み失敗を含むいかなるエラーも例外として外に出さない。
+ */
+interface CollectorInterface
+{
+    /**
+     * リクエスト開始時に一度だけ呼ぶ。アクティブなトレースを初期化する。
+     *
+     * start() を finish() の前に再度呼んだ場合の動作は実装依存とする
+     * （ログ相関が主目的のため、ネストしたトレースはサポートしない）。
+     *
+     * @param HttpInput $http  HTTPリクエスト入力データ
+     * @param Flow      $flow  フロー相関情報
+     */
+    public function start(HttpInput $http, Flow $flow);
+
+    /**
+     * アクティブなトレースの trace_id を返す。トレースがなければ null。
+     *
+     * アダプタがレスポンスヘッダ (X-Trace-Id 等) やアプリログの相関に使う。
+     * 未サンプリングのトレースでも trace_id は返す（ログ相関に使えるため）。
+     *
+     * @return string|null
+     */
+    public function getActiveTraceId();
+
+    /**
+     * アクティブなトレースがサンプリング対象かどうかを返す。
+     *
+     * アダプタが shape 抽出等の重い処理をスキップするための判定に使う。
+     * トレースが存在しない場合は false を返す。
+     * ※ schema v1 に sampled フィールドはない。JSONL への存在自体がサンプリング済みの証拠。
+     *
+     * @return bool
+     */
+    public function isSampled();
+
+    /**
+     * 実行された SQL 文をタイムラインに追記する。
+     *
+     * Collector が正規化・HMAC トークン化・テーブル抽出・effects 集計を内部で行う。
+     * 未サンプリング時は黙って無視。seq は Collector が全イベント共通のカウンタで採番する。
+     *
+     * @param string $statement  実行された SQL 文字列。
+     *                           バインド値が埋め込まれた形 (CI3 の query_history 等) でも、
+     *                           プレースホルダ付きの形 (? や :name) でも可。
+     * @param array  $binds      バインドパラメータ値の配列。
+     *                           statement に値が埋め込まれている場合は空配列を渡す。
+     * @param string $source     SQL の取得元識別子。analysis.warnings の生成に使う。
+     *                           例: 'query_history' (CI3 $db->queries から事後キャプチャ)
+     *                               'intercepted'   (DB ラッパーによるリアルタイムキャプチャ)
+     */
+    public function addSql($statement, array $binds = [], $source = 'unknown');
+
+    /**
+     * 任意の手動計装イベントをタイムラインに追記する。
+     *
+     * キャッシュ・ファイル・キュー・外部 HTTP 呼び出しなど SQL 以外の操作に使う。
+     * Collector が $data の shape を生成する。
+     * 未サンプリング時は黙って無視。seq は Collector が採番する。
+     *
+     * @param string $label  短い操作名。例: 'cache_read', 'file_put', 'queue_push'
+     * @param mixed  $data   操作に紐づく任意のデータ（生の値）。null = データなし。
+     */
+    public function addCustom($label, $data = null);
+
+    /**
+     * 観測したエラー・例外をトレースの errors[] に追加する。
+     *
+     * 用途:
+     *   - digtrace 内部のキャプチャ失敗 (type='capture_failure')
+     *   - アダプタが観測したアプリ例外 (type='php_exception')
+     *
+     * 動作:
+     *   サンプリング済みかつアクティブなトレースがある場合にのみ errors[] に追記する。
+     *   未サンプリング・アクティブトレースなしの場合は黙って無視する。
+     *
+     * エラーの可観測性:
+     *   - errors[] の内容は JSONL レコードとして sink に書き出される。
+     *     JSONL が書き出されれば errors[] の中身も確認できる（errors[] が空 = クリーンキャプチャ）。
+     *   - sink への書き込み失敗（record が出力されない場合）は PHP の error_log() に出力される。
+     *     これが唯一 Apache ログに出力されるケース。
+     *
+     * @param string      $type     エラー種別。schema: error_item.type
+     * @param string|null $message  エラーメッセージ
+     * @param string|null $at       発生箇所の目安。例: 'ClassName', 'file.php:42'
+     */
+    public function addError($type, $message = null, $at = null);
+
+    /**
+     * トレースを完了しシンクに書き出す。リクエスト終了時に一度だけ呼ぶ。
+     *
+     * 内部処理 (finish() 内で順に実行):
+     *   1. $response の情報を http エンベロープに統合
+     *   2. timeline[type=sql] の write ops から effects[] を集計
+     *   3. redaction メタ (tokenized/token_format) を Config から生成
+     *   4. SinkInterface::write() を呼び出す
+     *   5. write() が例外を投げた場合は握りつぶす（アプリ本体を止めない）
+     *
+     * アクティブなトレースがなければ何もしない。
+     * 完了後 getActiveTraceId() は null を返す。
+     *
+     * @param HttpResponse $response  HTTPレスポンスデータ
+     */
+    public function finish(HttpResponse $response);
+}
