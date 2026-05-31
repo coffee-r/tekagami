@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Report;
+namespace CoffeeR\Tekagami\Report;
 
 /**
  * JSONL ファイル（複数可）を読み込み、トレース配列を返す。

@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests\Sql;
+namespace CoffeeR\Tekagami\Tests\Sql;
 
-use CoffeeR\Digtrace\Sql\OracleSqlAnalyzer;
+use CoffeeR\Tekagami\Sql\OracleSqlAnalyzer;
 use PHPUnit\Framework\TestCase;
 
 class OracleSqlAnalyzerTest extends TestCase

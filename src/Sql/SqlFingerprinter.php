@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Sql;
+namespace CoffeeR\Tekagami\Sql;
 
 /**
  * SQL の意味レベル（層B）フィンガープリントを生成する内部クラス。

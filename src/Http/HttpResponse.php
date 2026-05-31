@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Http;
+namespace CoffeeR\Tekagami\Http;
 
 /**
  * HTTP レスポンスデータの値オブジェクト。HttpInput と対称。

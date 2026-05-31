@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Http;
+namespace CoffeeR\Tekagami\Http;
 
 /**
  * HTTP リクエスト入力データの値オブジェクト。

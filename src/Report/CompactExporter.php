@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Report;
+namespace CoffeeR\Tekagami\Report;
 
 /**
  * Aggregator の出力を AI 送付用のコンパクト構造へ変換する。
@@ -58,7 +58,7 @@ class CompactExporter
     public function renderMarkdown(array $export)
     {
         $lines = [];
-        $lines[] = '# digtrace compact export';
+        $lines[] = '# tekagami compact export';
         $lines[] = '';
         $lines[] = '- トレース数: `' . (isset($export['trace_count']) ? $export['trace_count'] : 0) . '`';
         $lines[] = '- 観測エントリポイント数: `' . (isset($export['observed_entrypoint_count']) ? $export['observed_entrypoint_count'] : 0) . '`';

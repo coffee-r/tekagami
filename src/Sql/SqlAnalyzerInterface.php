@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Sql;
+namespace CoffeeR\Tekagami\Sql;
 
 /**
  * SQL 文の正規化・分析を行う方言別アナライザの契約。

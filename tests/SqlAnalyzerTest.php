@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests;
+namespace CoffeeR\Tekagami\Tests;
 
-use CoffeeR\Digtrace\Sql\SqliteSqlAnalyzer;
+use CoffeeR\Tekagami\Sql\SqliteSqlAnalyzer;
 use PHPUnit\Framework\TestCase;
 
 /**

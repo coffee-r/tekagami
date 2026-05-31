@@ -1,6 +1,6 @@
-# digtrace Schema v1
+# tekagami Schema v1
 
-`digtrace-v1.schema.json` は JSONL の 1 行 = HTTP リクエスト 1 件を表すオブジェクトのスキーマ。
+`tekagami-v1.schema.json` は JSONL の 1 行 = HTTP リクエスト 1 件を表すオブジェクトのスキーマ。
 
 このスキーマは **言語に依存しない契約** として扱う。他言語実装が同じスキーマに沿った出力を出せば、同じ分析ツールで掘り起こしができる。
 
@@ -98,7 +98,7 @@ SQL ステートメント 1 件。
 
 - `statement_normalized` — リテラルを `{parameter}` に置換した正規化 SQL。同一パターンのグルーピング基準。
 - `statement_hash` — `sha256:<hex>` (`statement_normalized` のハッシュ)。層A。正規化 SQL 文字列の厳密同一性を表し、`effects[].statement_hash` と対応。
-- `statement_fingerprint` — 層B。操作種別、対象テーブル、絞り込み列、書込列から作る意味レベルのフィンガープリント。現在の `digtrace-v1` では必須。
+- `statement_fingerprint` — 層B。操作種別、対象テーブル、絞り込み列、書込列から作る意味レベルのフィンガープリント。現在の `tekagami-v1` では必須。
   - `fp_hash` — `fp1:<hex>`。CI3 の生SQLと Laravel/Eloquent のSQLのように文字列が変わる移行でも、意味レベルの比較材料にする。
   - `filter_columns` — `WHERE` / `ON` / `HAVING` の比較左辺から抽出した列。
   - `write_columns` — `INSERT` 列リスト / `UPDATE SET` 左辺から抽出した列。
@@ -107,7 +107,7 @@ SQL ステートメント 1 件。
 - `analysis.dialect` — 解析に使った SQL 方言（`oracle` / `sqlite`）。`Collector` に注入したアナライザに対応する。
 - `analysis.warnings` — 信頼度が下がる原因を列挙。`query_history_capture_has_no_bind_values`（CI3 の query_history 経由では bind 分離ができない）など。
 
-層Aは「SQL文字列パターンが同じか」を見る署名で、層Bは「操作対象と列集合が同じか」を見る署名です。移行調査では、層Aの差分はノイズになりやすいため、`bin/digtrace export` が出す層B込みのコンパクトJSONを legacy / target で2回作り、AIや人が差分説明を読む運用を想定します。
+層Aは「SQL文字列パターンが同じか」を見る署名で、層Bは「操作対象と列集合が同じか」を見る署名です。移行調査では、層Aの差分はノイズになりやすいため、`bin/tekagami export` が出す層B込みのコンパクトJSONを legacy / target で2回作り、AIや人が差分説明を読む運用を想定します。
 
 ### type: "custom"
 
@@ -135,7 +135,7 @@ SQL ステートメント 1 件。
 - `effects[]` — 書き込み操作のサマリ（timeline を全スキャンしなくて済む）
 - `query_values` / `request_values` — リクエストの業務的な判断材料
 
-AI 送付用には、生の JSONL ではなく `bin/digtrace export <jsonl...>` の出力を使う。SQL全文は `sql_dictionary` に辞書化され、各実行パターンは短い SQL ID と `fp_hash` を参照するため、通常の `report.md` よりトークンを抑えられる。
+AI 送付用には、生の JSONL ではなく `bin/tekagami export <jsonl...>` の出力を使う。SQL全文は `sql_dictionary` に辞書化され、各実行パターンは短い SQL ID と `fp_hash` を参照するため、通常の `report.md` よりトークンを抑えられる。
 
 旧系/新系の移行評価では、legacy / target を別々に `export` し、必要に応じて両プロジェクトのコード、DDL、fixture と一緒に AI や人間へ渡す。v1 では新旧自動比較コマンドは提供しない。
 

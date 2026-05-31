@@ -1,16 +1,16 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests;
+namespace CoffeeR\Tekagami\Tests;
 
-use CoffeeR\Digtrace\Collector;
-use CoffeeR\Digtrace\Config;
-use CoffeeR\Digtrace\Flow;
-use CoffeeR\Digtrace\Http\HttpInput;
-use CoffeeR\Digtrace\Http\HttpResponse;
-use CoffeeR\Digtrace\Sink\SinkInterface;
-use CoffeeR\Digtrace\Sql\OracleSqlAnalyzer;
-use CoffeeR\Digtrace\Sql\SqlAnalyzerInterface;
-use CoffeeR\Digtrace\Sql\SqliteSqlAnalyzer;
+use CoffeeR\Tekagami\Collector;
+use CoffeeR\Tekagami\Config;
+use CoffeeR\Tekagami\Flow;
+use CoffeeR\Tekagami\Http\HttpInput;
+use CoffeeR\Tekagami\Http\HttpResponse;
+use CoffeeR\Tekagami\Sink\SinkInterface;
+use CoffeeR\Tekagami\Sql\OracleSqlAnalyzer;
+use CoffeeR\Tekagami\Sql\SqlAnalyzerInterface;
+use CoffeeR\Tekagami\Sql\SqliteSqlAnalyzer;
 use PHPUnit\Framework\TestCase;
 
 /**

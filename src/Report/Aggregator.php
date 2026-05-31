@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Report;
+namespace CoffeeR\Tekagami\Report;
 
 /**
  * トレース配列をエントリポイント × 実行パターンで集計する。

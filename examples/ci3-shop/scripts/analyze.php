@@ -1,7 +1,7 @@
 <?php
 
 if ($argc < 3) {
-    fwrite(STDERR, "Usage: php analyze.php <digtrace.jsonl> <report.json> [flow-map.tsv]\n");
+    fwrite(STDERR, "Usage: php analyze.php <tekagami.jsonl> <report.json> [flow-map.tsv]\n");
     exit(1);
 }
 
@@ -80,7 +80,7 @@ ksort($flowSummaries);
 $report = json_decode(file_get_contents($reportPath), true);
 $entrypointCount = is_array($report) && isset($report['observed_entrypoint_count']) ? $report['observed_entrypoint_count'] : 0;
 
-echo "# digtrace E2E 分析メモ\n\n";
+echo "# tekagami E2E 分析メモ\n\n";
 echo "## 観測サマリ\n\n";
 echo "- トレース数: `" . $traceCount . "`\n";
 echo "- 観測エントリポイント数: `" . $entrypointCount . "`\n";
@@ -109,7 +109,7 @@ if (count($customCounts) === 0) {
 }
 
 echo "## EC業務分岐ごとの証拠\n\n";
-echo "| 業務分岐 | 観測flow | digtraceで見える証拠 | customイベントの要否 |\n";
+echo "| 業務分岐 | 観測flow | tekagamiで見える証拠 | customイベントの要否 |\n";
 echo "|---|---|---|---|\n";
 
 $branches = [

@@ -1,4 +1,4 @@
-# digtrace E2E 分析メモ
+# tekagami E2E 分析メモ
 
 ## 観測サマリ
 
@@ -75,7 +75,7 @@
 
 ## EC業務分岐ごとの証拠
 
-| 業務分岐 | 観測flow | digtraceで見える証拠 | customイベントの要否 |
+| 業務分岐 | 観測flow | tekagamiで見える証拠 | customイベントの要否 |
 |---|---|---|---|
 | 購入制限: 1個限定の初回注文は通る | `one-qty-cancelled-ok / c8d6549c` | 注文作成が `201`。`SHOP_ORDERS` / `SHOP_ORDER_ITEMS` への `INSERT` とカート削除が残る。 <br>`one-qty-cancelled-ok`(status=200/201; custom=free_shipping_applied,order_created,payment_method_filtered,purchase_limit_checked,shipping_method_selected; 更新=DELETE SHOP_CART_ITEMS,DELETE SHOP_RESERVATION_CART_ITEMS,INSERT SHOP_CART_ITEMS,INSERT SHOP_ORDERS,INSERT SHOP_ORDER_ITEMS) | `purchase_limit_checked` があると、単なる注文成功ではなく購入制限チェック通過だと読める。 |
 | 購入制限: 注文済み商品は再注文不可 | `one-qty-after-order-rejected / 647f2eb2` | `POST /api/orders` が `422`。過去注文参照の後、注文 `INSERT` が発生しない。 <br>`one-qty-after-order-rejected`(status=201/422; custom=purchase_limit_rejected; 更新=INSERT SHOP_CART_ITEMS) | `purchase_limit_rejected` が必要。SQLだけでは「購入制限」なのか他の注文拒否なのか名前付けしにくい。 |

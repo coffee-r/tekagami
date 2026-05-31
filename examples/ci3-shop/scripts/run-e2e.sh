@@ -3,7 +3,7 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8088}"
 EXAMPLE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-TRACE="${EXAMPLE_DIR}/var/digtrace.jsonl"
+TRACE="${EXAMPLE_DIR}/var/tekagami.jsonl"
 FLOW_MAP="${EXAMPLE_DIR}/var/flow-map.tsv"
 TMP_DIR="$(mktemp -d)"
 LAST_BODY="${TMP_DIR}/body.json"
@@ -56,7 +56,7 @@ api() {
   status="$(curl -sS -o "${LAST_BODY}" -w "%{http_code}" \
     -X "${method}" "${BASE_URL}${path}" \
     -H "Content-Type: application/json" \
-    -H "X-Digtrace-Flow: ${flow}" \
+    -H "X-Tekagami-Flow: ${flow}" \
     --data "${body}")"
   printf "%s" "${status}" > "${LAST_STATUS}"
 

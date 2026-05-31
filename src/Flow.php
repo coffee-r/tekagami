@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace;
+namespace CoffeeR\Tekagami;
 
 /**
  * 任意のフロー相関情報の値オブジェクト。

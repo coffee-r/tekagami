@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests;
+namespace CoffeeR\Tekagami\Tests;
 
 use PHPUnit\Framework\TestCase;
 
@@ -8,7 +8,7 @@ class CliTest extends TestCase
 {
     private function runCli($args)
     {
-        $bin = __DIR__ . '/../bin/digtrace';
+        $bin = __DIR__ . '/../bin/tekagami';
         $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($bin) . ' ' . $args . ' 2>&1';
         $output = [];
         $code = 0;

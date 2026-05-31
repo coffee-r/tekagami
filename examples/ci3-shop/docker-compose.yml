@@ -23,8 +23,8 @@ services:
       DIGSHOP_DB_USER: digshop
       DIGSHOP_DB_PASSWORD: digshop
       DIGSHOP_DB_CONNECT: oracle:1521/FREEPDB1
-      DIGTRACE_LOG: /var/www/html/var/digtrace.jsonl
-      DIGTRACE_SECRET: local-e2e-secret
+      TEKAGAMI_LOG: /var/www/html/var/tekagami.jsonl
+      TEKAGAMI_SECRET: local-e2e-secret
     ports:
       - "8088:80"
     volumes:

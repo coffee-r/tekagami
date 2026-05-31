@@ -27,7 +27,7 @@ jobs:
       - name: Lint sources
         run: |
           find src -name '*.php' -print0 | xargs -0 -n1 php -l
-          php -l bin/digtrace
+          php -l bin/tekagami
 
   tests:
     name: PHPUnit (PHP ${{ matrix.php }})

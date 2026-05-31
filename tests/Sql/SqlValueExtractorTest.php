@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests\Sql;
+namespace CoffeeR\Tekagami\Tests\Sql;
 
-use CoffeeR\Digtrace\Sql\SqlValueExtractor;
+use CoffeeR\Tekagami\Sql\SqlValueExtractor;
 use PHPUnit\Framework\TestCase;
 
 class SqlValueExtractorTest extends TestCase

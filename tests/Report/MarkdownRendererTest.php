@@ -1,10 +1,10 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests\Report;
+namespace CoffeeR\Tekagami\Tests\Report;
 
-use CoffeeR\Digtrace\Report\Aggregator;
-use CoffeeR\Digtrace\Report\JsonlReader;
-use CoffeeR\Digtrace\Report\MarkdownRenderer;
+use CoffeeR\Tekagami\Report\Aggregator;
+use CoffeeR\Tekagami\Report\JsonlReader;
+use CoffeeR\Tekagami\Report\MarkdownRenderer;
 use PHPUnit\Framework\TestCase;
 
 class MarkdownRendererTest extends TestCase

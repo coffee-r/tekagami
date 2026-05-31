@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests\Report;
+namespace CoffeeR\Tekagami\Tests\Report;
 
-use CoffeeR\Digtrace\Report\Aggregator;
+use CoffeeR\Tekagami\Report\Aggregator;
 use PHPUnit\Framework\TestCase;
 
 class AggregatorTest extends TestCase
@@ -331,7 +331,7 @@ class AggregatorTest extends TestCase
     public function testAggregateWithFixtureFile()
     {
         $agg    = new Aggregator();
-        $reader = new \CoffeeR\Digtrace\Report\JsonlReader();
+        $reader = new \CoffeeR\Tekagami\Report\JsonlReader();
         $traces = $reader->read([__DIR__ . '/../fixtures/sample.jsonl']);
 
         $report = $agg->aggregate($traces);

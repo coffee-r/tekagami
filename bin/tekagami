@@ -23,10 +23,10 @@ if (!$autoloaded) {
     exit(1);
 }
 
-use CoffeeR\Digtrace\Report\Aggregator;
-use CoffeeR\Digtrace\Report\CompactExporter;
-use CoffeeR\Digtrace\Report\JsonlReader;
-use CoffeeR\Digtrace\Report\MarkdownRenderer;
+use CoffeeR\Tekagami\Report\Aggregator;
+use CoffeeR\Tekagami\Report\CompactExporter;
+use CoffeeR\Tekagami\Report\JsonlReader;
+use CoffeeR\Tekagami\Report\MarkdownRenderer;
 
 // ---------- argv parsing ----------
 
@@ -159,15 +159,15 @@ function runExport(array $paths, array $options)
 function printHelp()
 {
     echo <<<'HELP'
-digtrace — digtrace-v1 report and export tool
+tekagami — tekagami-v1 report and export tool
 
 Usage:
-  php bin/digtrace report <jsonl...> [--format md|json] [--value-mode normalized|tokenized]
-  php bin/digtrace export <jsonl...> [--format json|md] [--value-mode normalized|tokenized]
-  php bin/digtrace --help
+  php bin/tekagami report <jsonl...> [--format md|json] [--value-mode normalized|tokenized]
+  php bin/tekagami export <jsonl...> [--format json|md] [--value-mode normalized|tokenized]
+  php bin/tekagami --help
 
 Commands:
-  report   Generate a Markdown or JSON summary report from JSONL digtrace files
+  report   Generate a Markdown or JSON summary report from JSONL tekagami files
   export   Generate a compact JSON or Markdown artifact for AI review
 
 Options for report:
@@ -181,10 +181,10 @@ Options for export:
                             SQL value display mode (default: normalized)
 
 Examples:
-  php bin/digtrace report trace.jsonl
-  php bin/digtrace report --format json jan.jsonl feb.jsonl > report.json
-  php bin/digtrace export legacy.jsonl > legacy.export.json
-  php bin/digtrace export target.jsonl > target.export.json
+  php bin/tekagami report trace.jsonl
+  php bin/tekagami report --format json jan.jsonl feb.jsonl > report.json
+  php bin/tekagami export legacy.jsonl > legacy.export.json
+  php bin/tekagami export target.jsonl > target.export.json
 
 HELP;
 }

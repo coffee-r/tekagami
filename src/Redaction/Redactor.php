@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Redaction;
+namespace CoffeeR\Tekagami\Redaction;
 
-use CoffeeR\Digtrace\Config;
+use CoffeeR\Tekagami\Config;
 
 /**
  * shape生成・HMACトークン化・マスキングを担う内部クラス。

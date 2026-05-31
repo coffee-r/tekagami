@@ -1,14 +1,14 @@
 <?php
 
-namespace CoffeeR\Digtrace;
+namespace CoffeeR\Tekagami;
 
-use CoffeeR\Digtrace\Http\HttpInput;
-use CoffeeR\Digtrace\Http\HttpResponse;
-use CoffeeR\Digtrace\Redaction\Redactor;
-use CoffeeR\Digtrace\Sink\SinkInterface;
-use CoffeeR\Digtrace\Sql\SqlAnalyzerInterface;
-use CoffeeR\Digtrace\Sql\SqlFingerprinter;
-use CoffeeR\Digtrace\Sql\SqlValueExtractor;
+use CoffeeR\Tekagami\Http\HttpInput;
+use CoffeeR\Tekagami\Http\HttpResponse;
+use CoffeeR\Tekagami\Redaction\Redactor;
+use CoffeeR\Tekagami\Sink\SinkInterface;
+use CoffeeR\Tekagami\Sql\SqlAnalyzerInterface;
+use CoffeeR\Tekagami\Sql\SqlFingerprinter;
+use CoffeeR\Tekagami\Sql\SqlValueExtractor;
 
 /**
  * CollectorInterface の標準実装。
@@ -259,7 +259,7 @@ class Collector implements CollectorInterface
             try {
                 $record = $this->buildMinimalRecord();
             } catch (\Throwable $e) {
-                error_log('digtrace: buildRecord and fallback both failed: ' . $e->getMessage());
+                error_log('tekagami: buildRecord and fallback both failed: ' . $e->getMessage());
                 $this->resetState();
                 return;
             }
@@ -271,7 +271,7 @@ class Collector implements CollectorInterface
         try {
             $this->sink->write($record);
         } catch (\Throwable $e) {
-            error_log('digtrace: sink write failed: ' . $e->getMessage());
+            error_log('tekagami: sink write failed: ' . $e->getMessage());
         } finally {
             $this->resetState();
         }
@@ -317,7 +317,7 @@ class Collector implements CollectorInterface
     }
 
     /**
-     * 完全な digtrace-v1 レコードを組み立てる。
+     * 完全な tekagami-v1 レコードを組み立てる。
      *
      * @param HttpResponse $response
      * @return array

@@ -1,9 +1,9 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests;
+namespace CoffeeR\Tekagami\Tests;
 
-use CoffeeR\Digtrace\Config;
-use CoffeeR\Digtrace\Redaction\Redactor;
+use CoffeeR\Tekagami\Config;
+use CoffeeR\Tekagami\Redaction\Redactor;
 use PHPUnit\Framework\TestCase;
 
 class RedactorTest extends TestCase

@@ -15,7 +15,7 @@ class Shop extends MY_Controller
             $db = $this->shop->health();
             return $this->sendJson(200, array('ok' => true, 'db' => $db ? true : false));
         } catch (Throwable $e) {
-            $this->digtraceCollector->addError('app_error', 'application error', 'health');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'health');
             return $this->sendJson(503, array('ok' => false, 'error' => 'db_unavailable'));
         }
     }
@@ -29,7 +29,7 @@ class Shop extends MY_Controller
             return $this->sendJson(200, array('ok' => true));
         } catch (Throwable $e) {
             $this->shop->rollback();
-            $this->digtraceCollector->addError('app_error', 'application error', 'reset');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'reset');
             return $this->sendJson(500, array('error' => 'internal_error'));
         }
     }
@@ -83,7 +83,7 @@ class Shop extends MY_Controller
             return $this->sendJson(201, array('cart_id' => $cartId, 'added' => $productCode));
         } catch (Throwable $e) {
             $this->shop->rollback();
-            $this->digtraceCollector->addError('app_error', 'application error', 'add_cart_item');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'add_cart_item');
             return $this->sendJson(500, array('error' => 'internal_error'));
         }
     }
@@ -106,7 +106,7 @@ class Shop extends MY_Controller
 
             return $this->sendJson(200, array('cart_id' => $cartId, 'items' => $payloadItems));
         } catch (Throwable $e) {
-            $this->digtraceCollector->addError('app_error', 'application error', 'cart');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'cart');
             return $this->sendJson(500, array('error' => 'internal_error'));
         }
     }
@@ -120,7 +120,7 @@ class Shop extends MY_Controller
             }
             return $this->sendJson(200, $quote);
         } catch (Throwable $e) {
-            $this->digtraceCollector->addError('app_error', 'application error', 'checkout_quote');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'checkout_quote');
             return $this->sendJson(500, array('error' => 'internal_error'));
         }
     }
@@ -169,7 +169,7 @@ class Shop extends MY_Controller
             return $this->sendJson(201, array('ok' => true, 'order_id' => $orderId));
         } catch (Throwable $e) {
             $this->shop->rollback();
-            $this->digtraceCollector->addError('app_error', 'application error', 'create_order');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'create_order');
             return $this->sendJson(500, array('error' => 'internal_error'));
         }
     }
@@ -183,7 +183,7 @@ class Shop extends MY_Controller
             return $this->sendJson(200, array('ok' => true, 'order_id' => (int) $orderId, 'status' => 'cancelled'));
         } catch (Throwable $e) {
             $this->shop->rollback();
-            $this->digtraceCollector->addError('app_error', 'application error', 'cancel_order');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'cancel_order');
             return $this->sendJson(500, array('error' => 'internal_error'));
         }
     }
@@ -199,7 +199,7 @@ class Shop extends MY_Controller
             return $this->sendJson(200, array('ok' => true, 'payment_status' => $success ? 'credit_success' : 'credit_failed'));
         } catch (Throwable $e) {
             $this->shop->rollback();
-            $this->digtraceCollector->addError('app_error', 'application error', 'credit_callback');
+            $this->tekagamiCollector->addError('app_error', 'application error', 'credit_callback');
             return $this->sendJson(500, array('error' => 'internal_error'));
         }
     }

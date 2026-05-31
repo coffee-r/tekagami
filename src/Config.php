@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace;
+namespace CoffeeR\Tekagami;
 
 /**
  * Collector の設定値オブジェクト。コンストラクタで Collector に注入する。

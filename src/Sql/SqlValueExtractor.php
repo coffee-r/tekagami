@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Sql;
+namespace CoffeeR\Tekagami\Sql;
 
 /**
  * SQL 文から allowlist に一致する列の値を抽出する内部クラス。

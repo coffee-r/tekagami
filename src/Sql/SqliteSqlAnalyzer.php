@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Sql;
+namespace CoffeeR\Tekagami\Sql;
 
 /**
  * SQLite 方言のアナライザ。

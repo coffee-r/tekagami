@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Sql;
+namespace CoffeeR\Tekagami\Sql;
 
 /**
  * 方言非依存の共通ロジックを集約した基底クラス。

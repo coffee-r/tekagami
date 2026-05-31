@@ -1,20 +1,20 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests;
+namespace CoffeeR\Tekagami\Tests;
 
-use CoffeeR\Digtrace\Collector;
-use CoffeeR\Digtrace\Config;
-use CoffeeR\Digtrace\Flow;
-use CoffeeR\Digtrace\Http\HttpInput;
-use CoffeeR\Digtrace\Http\HttpResponse;
-use CoffeeR\Digtrace\Sink\SinkInterface;
-use CoffeeR\Digtrace\Sql\OracleSqlAnalyzer;
+use CoffeeR\Tekagami\Collector;
+use CoffeeR\Tekagami\Config;
+use CoffeeR\Tekagami\Flow;
+use CoffeeR\Tekagami\Http\HttpInput;
+use CoffeeR\Tekagami\Http\HttpResponse;
+use CoffeeR\Tekagami\Sink\SinkInterface;
+use CoffeeR\Tekagami\Sql\OracleSqlAnalyzer;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
- * digtrace-v1.schema.json と「実装が実際に出力する JSON 構造」が一致するかの契約チェック。
+ * tekagami-v1.schema.json と「実装が実際に出力する JSON 構造」が一致するかの契約チェック。
  *
  * fixture と、実 Collector が生成したレコードの両方をスキーマ検証する。
  * これにより observed_values の空時 {} (object) なども自動で守られる。
@@ -30,7 +30,7 @@ class SchemaConformanceTest extends TestCase
     protected function setUp(): void
     {
         $this->validator = new Validator();
-        $path = __DIR__ . '/../docs/schema/digtrace-v1.schema.json';
+        $path = __DIR__ . '/../docs/schema/tekagami-v1.schema.json';
         $this->schema = json_decode(file_get_contents($path));
         $this->assertNotNull($this->schema, 'schema.json could not be decoded');
     }

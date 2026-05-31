@@ -1,12 +1,12 @@
 # CI3 Shop E2E Example
 
-CodeIgniter3 + PHP 7.3 + Oracle Database Free のローカルE2Eサンプルです。ECサイトの注文分岐を実際のHTTP APIとして叩き、digtrace JSONL とレポートを生成します。
+CodeIgniter3 + PHP 7.3 + Oracle Database Free のローカルE2Eサンプルです。ECサイトの注文分岐を実際のHTTP APIとして叩き、tekagami JSONL とレポートを生成します。
 
 ## 構成
 
-- `web`: PHP 7.3 Apache、CodeIgniter3、OCI8、digtrace
+- `web`: PHP 7.3 Apache、CodeIgniter3、OCI8、tekagami
 - `oracle`: `gvenzl/oracle-free:23-slim`
-- ログ出力: `examples/ci3-shop/var/digtrace.jsonl`
+- ログ出力: `examples/ci3-shop/var/tekagami.jsonl`
 
 Oracle は 12c そのものではありません。arm64 Mac でも動かしやすい最小寄りの現実解として 23-slim を使い、SQLは保守的なOracle方言に寄せています。
 
@@ -23,14 +23,14 @@ docker compose up -d --build
 
 生成物:
 
-- `var/digtrace.jsonl`
+- `var/tekagami.jsonl`
 - `var/flow-map.tsv`
 - `var/report.md`
 - `var/report.json`
 - `var/export.json`
 - `var/analysis.md`
 
-`var/` には代表サンプル出力をコミットしています。exampleを実行しなくても、digtrace がどのような JSONL / report / export を出すか確認できます。再実行すると `trace_id`、時刻、flow id などが変わるため差分が出ます。
+`var/` には代表サンプル出力をコミットしています。exampleを実行しなくても、tekagami がどのような JSONL / report / export を出すか確認できます。再実行すると `trace_id`、時刻、flow id などが変わるため差分が出ます。
 
 AI に業務挙動の仕様候補を整理させるときのプロンプト例は `ai/PROMPT.md` にあります。標準コンテキストは `var/export.json`、`var/analysis.md`、routes/controller/model、DDL/fixture、E2Eシナリオです。`var/flow-map.tsv` は人間の検証用対応表なので、AI 分析では通常渡しません。
 

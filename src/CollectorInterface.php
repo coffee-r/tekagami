@@ -1,10 +1,10 @@
 <?php
 
-namespace CoffeeR\Digtrace;
+namespace CoffeeR\Tekagami;
 
-use CoffeeR\Digtrace\Flow;
-use CoffeeR\Digtrace\Http\HttpInput;
-use CoffeeR\Digtrace\Http\HttpResponse;
+use CoffeeR\Tekagami\Flow;
+use CoffeeR\Tekagami\Http\HttpInput;
+use CoffeeR\Tekagami\Http\HttpResponse;
 
 /**
  * トレースのライフサイクルを管理する主要公開インターフェース。
@@ -73,7 +73,7 @@ interface CollectorInterface
      * 観測したエラー・例外をトレースの errors[] に追加する。
      *
      * 用途:
-     *   - digtrace 内部のキャプチャ失敗 (type='capture_failure')
+     *   - tekagami 内部のキャプチャ失敗 (type='capture_failure')
      *   - アダプタが観測したアプリ例外 (type='php_exception')
      *
      * 動作:

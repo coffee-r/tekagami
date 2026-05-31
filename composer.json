@@ -1,5 +1,5 @@
 {
-    "name": "coffee-r/digtrace-php",
+    "name": "coffee-r/tekagami-php",
     "description": "PHP library for observing HTTP request behavior and recording as JSONL for specification investigation",
     "type": "library",
     "license": "MIT",
@@ -11,15 +11,15 @@
         "opis/json-schema": "^2.3",
         "doctrine/instantiator": "^1.5"
     },
-    "bin": ["bin/digtrace"],
+    "bin": ["bin/tekagami"],
     "autoload": {
         "psr-4": {
-            "CoffeeR\\Digtrace\\": "src/"
+            "CoffeeR\\Tekagami\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CoffeeR\\Digtrace\\Tests\\": "tests/"
+            "CoffeeR\\Tekagami\\Tests\\": "tests/"
         }
     }
 }

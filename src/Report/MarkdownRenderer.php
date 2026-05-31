@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Report;
+namespace CoffeeR\Tekagami\Report;
 
 /**
  * Aggregator の出力を Markdown 文字列にレンダリングする。

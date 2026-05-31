@@ -1,18 +1,18 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-use CoffeeR\Digtrace\Collector;
-use CoffeeR\Digtrace\Config;
-use CoffeeR\Digtrace\Flow;
-use CoffeeR\Digtrace\Http\HttpInput;
-use CoffeeR\Digtrace\Http\HttpResponse;
-use CoffeeR\Digtrace\Sink\JsonlSink;
-use CoffeeR\Digtrace\Sql\OracleSqlAnalyzer;
+use CoffeeR\Tekagami\Collector;
+use CoffeeR\Tekagami\Config;
+use CoffeeR\Tekagami\Flow;
+use CoffeeR\Tekagami\Http\HttpInput;
+use CoffeeR\Tekagami\Http\HttpResponse;
+use CoffeeR\Tekagami\Sink\JsonlSink;
+use CoffeeR\Tekagami\Sql\OracleSqlAnalyzer;
 
 class MY_Controller extends CI_Controller
 {
     /** @var Collector */
-    public $digtraceCollector;
+    public $tekagamiCollector;
 
     /** @var mixed */
     protected $jsonBody = null;
@@ -20,10 +20,10 @@ class MY_Controller extends CI_Controller
     public function __construct()
     {
         parent::__construct();
-        $this->startDigtrace();
+        $this->startTekagami();
     }
 
-    protected function startDigtrace()
+    protected function startTekagami()
     {
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $method = strtoupper($_SERVER['REQUEST_METHOD']);
@@ -43,7 +43,7 @@ class MY_Controller extends CI_Controller
             $http->requestRaw = array();
         }
 
-        $config = new Config(getenv('DIGTRACE_SECRET') ?: null, array(
+        $config = new Config(getenv('TEKAGAMI_SECRET') ?: null, array(
             'keepKeys' => array(
                 'scenario', 'product_code', 'payment_method',
                 'shipping_method', 'prefecture', 'delivery_date',
@@ -59,16 +59,16 @@ class MY_Controller extends CI_Controller
             'maxTimelineSize' => 700,
         ));
 
-        $this->digtraceCollector = new Collector(
+        $this->tekagamiCollector = new Collector(
             $config,
-            new JsonlSink(getenv('DIGTRACE_LOG') ?: APPPATH . '../var/digtrace.jsonl'),
+            new JsonlSink(getenv('TEKAGAMI_LOG') ?: APPPATH . '../var/tekagami.jsonl'),
             new OracleSqlAnalyzer()
         );
 
-        $flowId = $this->header('X-Digtrace-Flow');
-        $flowSeq = $this->header('X-Digtrace-Seq');
+        $flowId = $this->header('X-Tekagami-Flow');
+        $flowSeq = $this->header('X-Tekagami-Seq');
         $flow = $flowId ? new Flow($flowId, $flowSeq !== null ? (int) $flowSeq : null) : null;
-        $this->digtraceCollector->start($http, $flow);
+        $this->tekagamiCollector->start($http, $flow);
     }
 
     protected function sendJson($status, array $payload)
@@ -79,7 +79,7 @@ class MY_Controller extends CI_Controller
         $response->contentType = 'application/json';
         $response->responseBodyRaw = $payload;
 
-        $this->digtraceCollector->finish($response);
+        $this->tekagamiCollector->finish($response);
 
         return $this->output
             ->set_status_header($status)
@@ -89,7 +89,7 @@ class MY_Controller extends CI_Controller
 
     protected function customEvent($label, $data = null)
     {
-        $this->digtraceCollector->addCustom($label, $data);
+        $this->tekagamiCollector->addCustom($label, $data);
     }
 
     protected function body($key, $default = null)

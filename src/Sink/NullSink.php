@@ -1,6 +1,6 @@
 <?php
 
-namespace CoffeeR\Digtrace\Sink;
+namespace CoffeeR\Tekagami\Sink;
 
 /**
  * 何も書き出さない Sink。テスト・無効化用。

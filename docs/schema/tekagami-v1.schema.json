@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/coffee-r/digtrace-php/docs/schema/digtrace-v1.schema.json",
-  "title": "digtrace v1",
+  "$id": "https://github.com/coffee-r/tekagami-php/docs/schema/tekagami-v1.schema.json",
+  "title": "tekagami v1",
   "description": "One JSONL line per HTTP request. Records observed facts only — no business-logic interpretation.",
   "type": "object",
   "required": [
@@ -39,7 +39,7 @@
     },
     "errors": {
       "type": "array",
-      "description": "Capture failures within digtrace, or application-level errors observed during the request.",
+      "description": "Capture failures within tekagami, or application-level errors observed during the request.",
       "items": { "$ref": "#/$defs/error_item" }
     }
   },
@@ -255,7 +255,7 @@
     },
 
     "error_item": {
-      "description": "A capture failure within digtrace, or an application-level error observed during the request.",
+      "description": "A capture failure within tekagami, or an application-level error observed during the request.",
       "type": "object",
       "required": ["type"],
       "properties": {

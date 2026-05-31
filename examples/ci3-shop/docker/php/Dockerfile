@@ -34,10 +34,10 @@ RUN curl -fsSL -o /tmp/ci.zip "https://github.com/bcit-ci/CodeIgniter/archive/re
     && cp -R "/tmp/CodeIgniter-${CODEIGNITER_VERSION}/"* /var/www/html/ \
     && rm -rf /tmp/ci.zip "/tmp/CodeIgniter-${CODEIGNITER_VERSION}"
 
-COPY composer.json composer.lock /opt/digtrace/
-COPY src /opt/digtrace/src
-COPY bin /opt/digtrace/bin
-RUN cd /opt/digtrace && composer install --no-dev --prefer-dist --no-interaction --no-progress
+COPY composer.json composer.lock /opt/tekagami/
+COPY src /opt/tekagami/src
+COPY bin /opt/tekagami/bin
+RUN cd /opt/tekagami && composer install --no-dev --prefer-dist --no-interaction --no-progress
 
 COPY examples/ci3-shop/app/application /var/www/html/application
 COPY examples/ci3-shop/app/public/index.php /var/www/html/index.php

@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests;
+namespace CoffeeR\Tekagami\Tests;
 
-use CoffeeR\Digtrace\Sink\JsonlSink;
+use CoffeeR\Tekagami\Sink\JsonlSink;
 use PHPUnit\Framework\TestCase;
 
 class JsonlSinkTest extends TestCase
@@ -12,7 +12,7 @@ class JsonlSinkTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->tmpFile = tempnam(sys_get_temp_dir(), 'digtrace_test_');
+        $this->tmpFile = tempnam(sys_get_temp_dir(), 'tekagami_test_');
     }
 
     protected function tearDown(): void
@@ -50,7 +50,7 @@ class JsonlSinkTest extends TestCase
     public function testWriteThrowsOnInvalidPath()
     {
         $this->expectException(\RuntimeException::class);
-        $sink = new JsonlSink('/nonexistent_dir/digtrace.jsonl');
+        $sink = new JsonlSink('/nonexistent_dir/tekagami.jsonl');
         $sink->write(['trace_id' => 'x']);
     }
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests\Report;
+namespace CoffeeR\Tekagami\Tests\Report;
 
-use CoffeeR\Digtrace\Report\CompactExporter;
+use CoffeeR\Tekagami\Report\CompactExporter;
 use PHPUnit\Framework\TestCase;
 
 class CompactExporterTest extends TestCase

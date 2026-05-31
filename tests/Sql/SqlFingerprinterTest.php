@@ -1,8 +1,8 @@
 <?php
 
-namespace CoffeeR\Digtrace\Tests\Sql;
+namespace CoffeeR\Tekagami\Tests\Sql;
 
-use CoffeeR\Digtrace\Sql\SqlFingerprinter;
+use CoffeeR\Tekagami\Sql\SqlFingerprinter;
 use PHPUnit\Framework\TestCase;
 
 class SqlFingerprinterTest extends TestCase

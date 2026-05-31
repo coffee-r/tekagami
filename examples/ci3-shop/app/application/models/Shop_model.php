@@ -281,8 +281,8 @@ class Shop_model extends CI_Model
     private function execute($sql, array $binds)
     {
         $CI =& get_instance();
-        if (isset($CI->digtraceCollector)) {
-            $CI->digtraceCollector->addSql($this->interpolate($sql, $binds), $binds, 'ci3-shop');
+        if (isset($CI->tekagamiCollector)) {
+            $CI->tekagamiCollector->addSql($this->interpolate($sql, $binds), $binds, 'ci3-shop');
         }
 
         $stmt = oci_parse($this->connection(), $sql);
