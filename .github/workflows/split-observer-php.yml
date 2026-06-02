@@ -1,0 +1,43 @@
+name: Split observer-php
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "php-v*"
+    paths:
+      - "observer-php/**"
+      - ".github/workflows/split-observer-php.yml"
+  workflow_dispatch:
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.TEKAGAMI_PHP_SPLIT_KEY }}
+
+      - name: Trust GitHub host key
+        run: ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Split observer-php
+        run: git subtree split --prefix=observer-php -b split/observer-php
+
+      - name: Push split repository
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        run: git push --force git@github.com:coffee-r/tekagami-php.git split/observer-php:main
+
+      - name: Push release tag
+        if: startsWith(github.ref, 'refs/tags/php-v')
+        run: |
+          version="${GITHUB_REF_NAME#php-}"
+          git tag "$version" split/observer-php
+          git push git@github.com:coffee-r/tekagami-php.git "$version"
